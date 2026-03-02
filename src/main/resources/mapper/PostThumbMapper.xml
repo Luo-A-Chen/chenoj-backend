@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- @author <a href="https://github.com/luochen">程序员啊琛</a> -->
+<!-- @from <a href="https://chenduoduo.icu">琛多多的oj网站</a> -->
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luochen.chenoj.mapper.PostThumbMapper">
+
+    <resultMap id="BaseResultMap" type="com.luochen.chenoj.model.entity.PostThumb">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="postId" column="postId" jdbcType="BIGINT"/>
+            <result property="userId" column="userId" jdbcType="BIGINT"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,postId,
+        userId,createTime,updateTime
+    </sql>
+</mapper>
