@@ -212,7 +212,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
 //        }
 //        page.setRecords(resourceList);
 //        return page;
-//    }
+//
 
     /**
      * 获取帖子封装脱敏类
@@ -275,9 +275,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             if (userIdUserListMap.containsKey(userId)) {
                 user = userIdUserListMap.get(userId).get(0);
             }
-            questionVO.setUser(userService.getUserVO(user));
-            questionVO.setHasThumb(questionIdHasThumbMap.getOrDefault(question.getId(), false));
-            questionVO.setHasFavour(questionIdHasFavourMap.getOrDefault(question.getId(), false));
+//            questionVO.setUser(userService.getUserVO(user));
+//            questionVO.setHasThumb(questionIdHasThumbMap.getOrDefault(question.getId(), false));
+//            questionVO.setHasFavour(questionIdHasFavourMap.getOrDefault(question.getId(), false));
             return questionVO;
         }).collect(Collectors.toList());
         questionVOPage.setRecords(questionVOList);

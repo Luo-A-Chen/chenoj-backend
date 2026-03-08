@@ -8,12 +8,6 @@ import lombok.Data;
  */
 @Data
 public class JudgeConfig {
-    {
-        "timeLimit":1000,
-            "memoryLimit":256,
-            "stackLimit":128
-    }
-
     /**
      * 时间限制（毫秒）
      */
