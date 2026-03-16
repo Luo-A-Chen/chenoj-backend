@@ -1,4 +1,4 @@
-package com.luochen.chenoj.judge.model;
+package com.luochen.chenoj.judge.codesandbox.model;
 
 import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
 import lombok.AllArgsConstructor;
@@ -31,8 +31,11 @@ public class ExecuteCodeResponse {
      */
     private Integer status;
 
+
     /**
      * 沙箱判断信息
      */
     private JudgeInfo judgeInfo;
+
+
 }

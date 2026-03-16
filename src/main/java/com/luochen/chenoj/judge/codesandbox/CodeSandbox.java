@@ -1,7 +1,7 @@
-package com.luochen.chenoj.judge;
+package com.luochen.chenoj.judge.codesandbox;
 
-import com.luochen.chenoj.judge.model.ExecuteCodeRequest;
-import com.luochen.chenoj.judge.model.ExecuteCodeResponse;
+import com.luochen.chenoj.judge.codesandbox.model.ExecuteCodeRequest;
+import com.luochen.chenoj.judge.codesandbox.model.ExecuteCodeResponse;
 
 /**
  * 代码沙箱接口

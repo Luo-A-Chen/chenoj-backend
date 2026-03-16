@@ -1,4 +1,4 @@
-package com.luochen.chenoj.judge.model;
+package com.luochen.chenoj.judge.codesandbox.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

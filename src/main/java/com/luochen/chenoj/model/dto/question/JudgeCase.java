@@ -1,10 +1,12 @@
 package com.luochen.chenoj.model.dto.question;
 
-import java.util.List;
+import lombok.Data;
+
 
 /**
  * 判题用例
  */
+@Data
 public class JudgeCase {
 
     /**

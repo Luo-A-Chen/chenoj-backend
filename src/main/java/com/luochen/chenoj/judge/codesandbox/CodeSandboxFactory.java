@@ -1,8 +1,8 @@
-package com.luochen.chenoj.judge;
+package com.luochen.chenoj.judge.codesandbox;
 
-import com.luochen.chenoj.judge.impl.ExampleCodeSandbox;
-import com.luochen.chenoj.judge.impl.RemoteCodeSandbox;
-import com.luochen.chenoj.judge.impl.ThirdPartyCodeSandbox;
+import com.luochen.chenoj.judge.codesandbox.impl.ExampleCodeSandbox;
+import com.luochen.chenoj.judge.codesandbox.impl.RemoteCodeSandbox;
+import com.luochen.chenoj.judge.codesandbox.impl.ThirdPartyCodeSandbox;
 
 /**
  * 代码沙箱工厂
