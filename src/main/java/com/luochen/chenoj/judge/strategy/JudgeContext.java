@@ -1,7 +1,7 @@
 package com.luochen.chenoj.judge.strategy;
 
 import com.luochen.chenoj.model.dto.question.JudgeCase;
-import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
+import com.luochen.chenoj.judge.codesandbox.model.JudgeInfo;
 import com.luochen.chenoj.model.entity.Question;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
 import lombok.Data;

@@ -1,6 +1,6 @@
 package com.luochen.chenoj.judge.strategy;
 
-import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
+import com.luochen.chenoj.judge.codesandbox.model.JudgeInfo;
 
 /**
  * 判题策略接口

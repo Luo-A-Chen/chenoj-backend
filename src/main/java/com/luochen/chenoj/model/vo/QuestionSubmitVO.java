@@ -2,7 +2,7 @@ package com.luochen.chenoj.model.vo;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
+import com.luochen.chenoj.judge.codesandbox.model.JudgeInfo;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;

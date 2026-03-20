@@ -4,7 +4,7 @@ import com.luochen.chenoj.judge.strategy.DefaultJudgeStrategy;
 import com.luochen.chenoj.judge.strategy.JavaLanguageJudgeStrategy;
 import com.luochen.chenoj.judge.strategy.JudgeContext;
 import com.luochen.chenoj.judge.strategy.JudgeStrategy;
-import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
+import com.luochen.chenoj.judge.codesandbox.model.JudgeInfo;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
 import org.springframework.stereotype.Service;
 

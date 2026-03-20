@@ -3,7 +3,7 @@ package com.luochen.chenoj.judge.codesandbox.impl;
 import com.luochen.chenoj.judge.codesandbox.CodeSandbox;
 import com.luochen.chenoj.judge.codesandbox.model.ExecuteCodeRequest;
 import com.luochen.chenoj.judge.codesandbox.model.ExecuteCodeResponse;
-import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
+import com.luochen.chenoj.judge.codesandbox.model.JudgeInfo;
 import com.luochen.chenoj.model.enums.JudgeInfoMessageEnum;
 import com.luochen.chenoj.model.enums.QuestionSubmitStatusEnum;
 import lombok.extern.slf4j.Slf4j;

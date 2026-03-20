@@ -1,6 +1,5 @@
 package com.luochen.chenoj.judge.codesandbox.model;
 
-import com.luochen.chenoj.model.dto.questionsubmit.JudgeInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
