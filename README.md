@@ -1,13 +1,8 @@
 ![](src/main/resources/picture/oj判题平台时序图.drawio.png)
 ------------------------------------------------------------
 ![](src/main/resources/picture/oj判题平台的核心业务流程.drawio.png)
-# SpringBoot 项目初始模板
-
 > 作者：[程序员啊琛](https://github.com/luochen)
 > 仅分享于 [琛多多的oj网站](https://chenduoduo.icu)
-
-## 模板特点
-
 ### 主流框架 & 特性
 
 - Spring Boot 2.7.x
@@ -45,7 +40,6 @@
 - 全局跨域处理
 - 长整数丢失精度解决
 - 多环境配置
-
 
 ## 业务功能
 
