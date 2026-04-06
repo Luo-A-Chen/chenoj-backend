@@ -4,7 +4,7 @@ import java.io.Serializable;
 import lombok.Data;
 
 /**
- * 通用返回类
+ * 通用返回类，统一响应封装
  *
  * @param <T>
  * @author <a href="https://github.com/luochen">程序员啊琛</a>
