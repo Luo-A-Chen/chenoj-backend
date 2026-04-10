@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
 * @author luochen
 * @description 针对表【question(题目)】的数据库操作Service
+* 继承IService，使用一些通用方法
 * @createDate 2026-03-04 20:06:10
 */
 public interface QuestionService extends IService<Question> {

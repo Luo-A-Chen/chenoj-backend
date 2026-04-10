@@ -39,22 +39,29 @@ public class AuthInterceptor {
      */
     @Around("@annotation(authCheck)")
     public Object doInterceptor(ProceedingJoinPoint joinPoint, AuthCheck authCheck) throws Throwable {
+        // 从注解里拿到对应的值
         String mustRole = authCheck.mustRole();
+        // 取出当前请求的上下文
         RequestAttributes requestAttributes = RequestContextHolder.currentRequestAttributes();
+        // 将当前请求转换为httpservletrequest
+        // Spring在请求进来时，会把httpservletrequest绑定在当前线程的threadLocal里
+        // 然后不管在哪个类里，只要是同一个请求线程，都能拿到request对象
         HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
         // 当前登录用户
         User loginUser = userService.getLoginUser(request);
         UserRoleEnum mustRoleEnum = UserRoleEnum.getEnumByValue(mustRole);
-        // 不需要权限，放行
+        // 第一类：不需要权限，放行
         if (mustRoleEnum == null) {
             return joinPoint.proceed();
         }
-        // 必须有该权限才通过
+        // 第二类：必须有该权限才通过
         UserRoleEnum userRoleEnum = UserRoleEnum.getEnumByValue(loginUser.getUserRole());
+        
+        // 检查用户角色是否正常
         if (userRoleEnum == null) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
-        // 如果被封号，直接拒绝
+        // 检查用户属性，如果被封号，直接拒绝
         if (UserRoleEnum.BAN.equals(userRoleEnum)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }

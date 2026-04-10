@@ -11,7 +11,7 @@ import com.luochen.chenoj.judge.codesandbox.impl.ThirdPartyCodeSandbox;
 public class CodeSandboxFactory {
     /**
      * 创建代码沙箱实例
-     *todo,拓展，可以确定代码沙箱不出现线程问题，可复用，升级为单例工厂模式
+     * todo,拓展，可以确定代码沙箱不出现线程问题，可复用，升级为单例工厂模式
      * @param mode 沙箱模式
      */
     public static CodeSandbox newInstance(String mode) {

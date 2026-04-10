@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * 全局异常处理器
- *
+ * restcontrolleradvice是spring的controller层全局拦截器
+ * 所有controller抛出的异常，都会被拦截，然后把错误信息按照统一格式返回给前端
  * @author <a href="https://github.com/luochen">程序员啊琛</a>
  * @from <a href="https://chenduoduo.icu">琛多多的oj网站</a>
  */

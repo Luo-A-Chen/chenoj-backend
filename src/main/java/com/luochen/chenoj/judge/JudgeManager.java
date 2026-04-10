@@ -10,13 +10,14 @@ import org.springframework.stereotype.Service;
 
 /**
  * 判题管理（简化调用）
+ * 策略模式用于选择不同的判题语言
  * 职责分离
  */
 @Service
 public class JudgeManager {
     /**
      * 执行判题任务
-     * 根据编程语言选择合适的判题策略
+     * 根据编程语言选择合适的判题语言策略
      */
     JudgeInfo doJudge(JudgeContext judgeContext){
         QuestionSubmit questionSubmit = judgeContext.getQuestionSubmit();

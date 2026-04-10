@@ -2,7 +2,8 @@ package com.luochen.chenoj.common;
 
 /**
  * 返回工具类
- *
+ * 不用手动new对象，
+ * 静态方法属于类本身，不需要实例化调用
  * @author <a href="https://github.com/luochen">程序员啊琛</a>
  * @from <a href="https://chenduoduo.icu">琛多多的oj网站</a>
  */
@@ -10,7 +11,7 @@ public class ResultUtils {
 
     /**
      * 成功
-     *
+     * 只要方法是静态就行
      * @param data
      * @param <T>
      * @return
