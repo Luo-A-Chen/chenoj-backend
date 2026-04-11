@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class JudgeServiceImpl implements JudgeService {
-    @Value("{codesandbox.type:example}")
+    @Value("${codesandbox.type:example}")
     private String value;
     @Resource
     private QuestionSubmitService questionSubmitService;//获取用户提交信息
