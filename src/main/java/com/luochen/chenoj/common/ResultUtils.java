@@ -1,0 +1,53 @@
+package com.luochen.chenoj.common;
+
+/**
+ * 返回工具类
+ * 不用手动new对象，
+ * 静态方法属于类本身，不需要实例化调用
+ * @author <a href="https://github.com/luochen">程序员啊琛</a>
+ * @from <a href="https://chenduoduo.icu">琛多多的oj网站</a>
+ */
+public class ResultUtils {
+
+    /**
+     * 成功
+     * 只要方法是静态就行
+     * @param data
+     * @param <T>
+     * @return
+     */
+    public static <T> BaseResponse<T> success(T data) {
+        return new BaseResponse<>(0, data, "ok");
+    }
+
+    /**
+     * 失败
+     *
+     * @param errorCode
+     * @return
+     */
+    public static BaseResponse error(ErrorCode errorCode) {
+        return new BaseResponse<>(errorCode);
+    }
+
+    /**
+     * 失败
+     *
+     * @param code
+     * @param message
+     * @return
+     */
+    public static BaseResponse error(int code, String message) {
+        return new BaseResponse(code, null, message);
+    }
+
+    /**
+     * 失败
+     *
+     * @param errorCode
+     * @return
+     */
+    public static BaseResponse error(ErrorCode errorCode, String message) {
+        return new BaseResponse(errorCode.getCode(), null, message);
+    }
+}
