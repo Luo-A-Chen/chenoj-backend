@@ -31,6 +31,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -174,10 +175,13 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         // 填充信息
         List<QuestionSubmitVO> questionSubmitVOList = questionSubmitList.stream().map(questionSubmit -> {
             QuestionSubmitVO questionSubmitVO = QuestionSubmitVO.objToVo(questionSubmit);
-            Long userId = questionSubmit.getUserId();
+            Long submitUserId = questionSubmit.getUserId();
+            if (!admin && !Objects.equals(loginUser.getId(), submitUserId)) {
+                questionSubmitVO.setCode(null);
+            }
             User user = null;
-            if (userIdUserListMap.containsKey(userId)) {
-                user = userIdUserListMap.get(userId).get(0);
+            if (userIdUserListMap.containsKey(submitUserId)) {
+                user = userIdUserListMap.get(submitUserId).get(0);
             }
             questionSubmitVO.setUserVO(userService.getUserVO(user));
             questionSubmitVO.setCanDelete(admin);

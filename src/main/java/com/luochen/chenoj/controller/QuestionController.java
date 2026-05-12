@@ -313,18 +313,20 @@ public class QuestionController {
     }
 
     /**
-     * 分页获取题目列表（除了管理员外，普通用户只能看到非答案提交代码等公开信息）
+     * 分页查询题目提交记录（任意已登录用户均可浏览；他人提交的代码对非管理员脱敏）。
      *
-     * @param questionSubmitQueryRequest
+     * @param questionSubmitQueryRequest 筛选条件（题号、语言、状态、用户 id 等，均为可选）
+     * @param request
      * @return
      */
     @PostMapping("/question_submit/list/page")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    @AuthCheck(mustRole = UserConstant.DEFAULT_ROLE)
     public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
                                                                          HttpServletRequest  request) {
         long current = questionSubmitQueryRequest.getCurrent();
         long size = questionSubmitQueryRequest.getPageSize();
-        //1.查询出未脱敏的分页信息
+        final User loginUser = userService.getLoginUser(request);
+        //1.查询出分页信息（按请求条件筛选，可看全站或某题、某用户的提交概要）
         // new Page<>(2,10)第二页，每页十条，mybatis-plus的分页对象
         // .page的需要两个参数，一个是分页对象，一个是查询条件对象
         // 数据量大的时候需要用“游标分页”优化，来避免全表扫描
@@ -333,8 +335,6 @@ public class QuestionController {
         // 关键是.page的这个方面
         Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
                 questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
-        final User loginUser = userService.getLoginUser(request);//获取当前登录用户信息
-        //2.将分页信息脱敏后返回
         return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
 

@@ -40,7 +40,7 @@ public class JudgeServiceImpl implements JudgeService {
     @Override
     public QuestionSubmit doJudge(long questionSubmitId) {
         //1.用户提交代码，根据用户提交的题目记录id，获取提交信息和题目
-        //拿到用户的提交信息
+        //拿到用户提交的code、languag
         QuestionSubmit questionSubmit = questionSubmitService.getById(questionSubmitId);
         if (questionSubmit == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "提交信息不存在");
@@ -69,8 +69,9 @@ public class JudgeServiceImpl implements JudgeService {
         // 这里走的是spring配置设置+工厂模式+静态代理模式
         // 从工厂拿到配置的代码沙箱类型
         CodeSandbox codeSandbox = CodeSandboxFactory.newInstance(value, remoteSandboxUrl);
-        // 创建沙箱代理类
+        // 创建沙箱代理类，增加日志记录功能
         codeSandbox = new CodeSandboxProxy(codeSandbox);
+        // 拿到用户提交的code、language
         String language = questionSubmit.getLanguage();
         String code = questionSubmit.getCode();
 
@@ -78,20 +79,21 @@ public class JudgeServiceImpl implements JudgeService {
         String judgeCaseStr = question.getJudgeCase();//获取题目判题用例
         List<JudgeCase> judgeCaselist = JSONUtil.toList(judgeCaseStr, JudgeCase.class);//使用工具转换为json列表，传入代码沙箱
         List<String> inputList = judgeCaselist.stream()
-                .map(JudgeCase::getInput)
-                .collect(Collectors.toList());//拿到每一个用例，汇聚成输入列表
+                .map(JudgeCase::getInput)//judgecase抽出所有input字符串
+                .collect(Collectors.toList());//汇聚成inputlist
+        //构造沙箱请求对象，把code、language、inputlist传入沙箱
         ExecuteCodeRequest executeCodeRequest = ExecuteCodeRequest.builder()
                 .code(code)
                 .language(language)
                 .inputList(inputList)
                 .build();
-        // 6.代码沙箱执行获得输出结果用例
-        // 执行代码
+        // 6.代码沙箱执行获得输出结果用例，沙箱执行为黑盒
         ExecuteCodeResponse executeCodeResponse = codeSandbox.executeCode(executeCodeRequest);
-        // 返回输出列表
+        // 返回输出列表，（这里沙箱的任务已经完成，返回的是输出列表）
         List<String> outputList = executeCodeResponse.getOutputList();
 
         // 7.根据沙箱执行结果，设置题目的判题状态和信息
+        // （然后进入判题系统，开始对沙箱执行完的结果进行判断）
         // 构建判题上下文，封装所有的判题数据（也就是上下文）,
         // 判题策略不需要知道数据来源，判题依据从context中获取
         JudgeContext judgeContext = new JudgeContext();
@@ -102,7 +104,7 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setQuestion(question);
         judgeContext.setQuestionSubmit(questionSubmit);
 
-        // 8.调用判题策略
+        // 8.调用判题策略（这里是核对关键，判断沙箱最终执行结果）
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
 
         // 9.更新数据库
@@ -115,7 +117,7 @@ public class JudgeServiceImpl implements JudgeService {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
         }
 
-        // 10.返回结果
+        // 10.返回结果，把判题结果写回question_submit里面
         questionSubmit.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());
         questionSubmit.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));
         return questionSubmit;
