@@ -66,7 +66,7 @@
 
 ### MySQL 数据库
 
-1）修改 `application.yml` 的数据库配置：
+1）复制 `application-example.yml` 为同级目录下的 `application.yml`（请勿把含真实密钥的 `application.yml` 提交仓库），按需修改数据库等配置：
 
 ```yml
 spring:

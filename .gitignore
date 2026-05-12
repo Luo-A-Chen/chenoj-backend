@@ -5,6 +5,8 @@
 src/main/resources/application.yml
 src/main/resources/application-prod.yml
 src/main/resources/application-test.yml
+# 本地私密覆盖（COS/DB 等仅本机，勿提交）
+src/main/resources/application-local.yml
 
 HELP.md
 target/
