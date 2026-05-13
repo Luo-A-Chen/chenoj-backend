@@ -16,8 +16,10 @@ import com.luochen.chenoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.luochen.chenoj.model.entity.Question;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
 import com.luochen.chenoj.model.entity.User;
+import com.luochen.chenoj.model.vo.DailyPracticeVO;
 import com.luochen.chenoj.model.vo.QuestionSubmitVO;
 import com.luochen.chenoj.model.vo.QuestionVO;
+import com.luochen.chenoj.service.DailyPracticeService;
 import com.luochen.chenoj.service.QuestionService;
 import com.luochen.chenoj.service.QuestionSubmitService;
 import com.luochen.chenoj.service.UserService;
@@ -48,6 +50,9 @@ public class QuestionController {
 
     @Resource
     private QuestionSubmitService questionSubmitService;
+
+    @Resource
+    private DailyPracticeService dailyPracticeService;
 
     /**
      * 创建一道题目
@@ -276,6 +281,16 @@ public class QuestionController {
         }
         boolean result = questionService.updateById(question);
         return ResultUtils.success(result);
+    }
+
+    /**
+     * 每日一题 + 连续打卡看板（日历与换题以 Asia/Shanghai 为准；同一天全站同一道随机题）。
+     * 登录态下返回是否完成今日每日题、连续完成每日题的天数；未登录仍可看到今日题目。
+     */
+    @GetMapping("/daily/board")
+    public BaseResponse<DailyPracticeVO> getDailyPracticeBoard(HttpServletRequest request) {
+        User loginUser = userService.getLoginUserPermitNull(request);
+        return ResultUtils.success(dailyPracticeService.getDailyPracticeBoard(loginUser));
     }
 
     /**
