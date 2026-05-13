@@ -17,12 +17,14 @@ import com.luochen.chenoj.model.entity.Question;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
 import com.luochen.chenoj.model.entity.User;
 import com.luochen.chenoj.model.vo.DailyPracticeVO;
+import com.luochen.chenoj.model.vo.WeeklyBoardVO;
 import com.luochen.chenoj.model.vo.QuestionSubmitVO;
 import com.luochen.chenoj.model.vo.QuestionVO;
 import com.luochen.chenoj.service.DailyPracticeService;
 import com.luochen.chenoj.service.QuestionService;
 import com.luochen.chenoj.service.QuestionSubmitService;
 import com.luochen.chenoj.service.UserService;
+import com.luochen.chenoj.service.WeeklyStatsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +55,9 @@ public class QuestionController {
 
     @Resource
     private DailyPracticeService dailyPracticeService;
+
+    @Resource
+    private WeeklyStatsService weeklyStatsService;
 
     /**
      * 创建一道题目
@@ -291,6 +296,14 @@ public class QuestionController {
     public BaseResponse<DailyPracticeVO> getDailyPracticeBoard(HttpServletRequest request) {
         User loginUser = userService.getLoginUserPermitNull(request);
         return ResultUtils.success(dailyPracticeService.getDailyPracticeBoard(loginUser));
+    }
+
+    /**
+     * 周报：本周（东八区周一至周日）AC 排行榜、热门题目（按提交次数）TOP3；新一周开始后统计窗口自然前移，不包含上周提交。
+     */
+    @GetMapping("/stats/weekly/board")
+    public BaseResponse<WeeklyBoardVO> getWeeklyBoard() {
+        return ResultUtils.success(weeklyStatsService.getWeeklyBoard());
     }
 
     /**
