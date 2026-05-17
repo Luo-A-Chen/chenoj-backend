@@ -1,5 +1,6 @@
 package com.luochen.chenoj.judge.codesandbox.model;
 
+import com.luochen.chenoj.model.dto.question.JudgeConfig;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,4 +28,9 @@ public class ExecuteCodeRequest {
      * 语言
      */
     private String language;
+
+    /**
+     * 题目判题限制（时间 ms、内存 KB）
+     */
+    private JudgeConfig judgeConfig;
 }

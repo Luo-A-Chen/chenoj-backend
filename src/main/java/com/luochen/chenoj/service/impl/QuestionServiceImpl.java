@@ -1,6 +1,8 @@
 package com.luochen.chenoj.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONUtil;
+import com.luochen.chenoj.model.dto.question.JudgeConfig;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -73,6 +75,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         }
         if (StringUtils.isNotBlank(judgeConfig) && judgeConfig.length() > 8192) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "判题配置过长");
+        }
+        if (StringUtils.isNotBlank(judgeConfig)) {
+            JudgeConfig config = JSONUtil.toBean(judgeConfig, JudgeConfig.class);
+            if (config != null && config.getMemoryLimit() != null
+                    && config.getMemoryLimit() > 64 * 1024) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "内存限制不能超过 64 MB");
+            }
         }
     }
 

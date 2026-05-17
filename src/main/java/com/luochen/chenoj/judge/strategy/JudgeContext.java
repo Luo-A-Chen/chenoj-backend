@@ -25,4 +25,14 @@ public class JudgeContext {
     private Question question;
 
     private QuestionSubmit questionSubmit;
+
+    /**
+     * 沙箱执行状态：1 成功 2 编译错误 3 运行错误 4 超时
+     */
+    private Integer sandboxStatus;
+
+    /**
+     * 沙箱返回的简要说明
+     */
+    private String sandboxMessage;
 }

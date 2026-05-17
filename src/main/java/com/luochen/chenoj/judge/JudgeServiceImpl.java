@@ -10,9 +10,11 @@ import com.luochen.chenoj.judge.codesandbox.model.ExecuteCodeRequest;
 import com.luochen.chenoj.judge.codesandbox.model.ExecuteCodeResponse;
 import com.luochen.chenoj.judge.strategy.JudgeContext;
 import com.luochen.chenoj.model.dto.question.JudgeCase;
+import com.luochen.chenoj.model.dto.question.JudgeConfig;
 import com.luochen.chenoj.judge.codesandbox.model.JudgeInfo;
 import com.luochen.chenoj.model.entity.Question;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
+import com.luochen.chenoj.model.enums.JudgeInfoMessageEnum;
 import com.luochen.chenoj.model.enums.QuestionSubmitStatusEnum;
 import com.luochen.chenoj.service.QuestionService;
 import com.luochen.chenoj.service.QuestionSubmitService;
@@ -81,44 +83,40 @@ public class JudgeServiceImpl implements JudgeService {
         List<String> inputList = judgeCaselist.stream()
                 .map(JudgeCase::getInput)//judgecase抽出所有input字符串
                 .collect(Collectors.toList());//汇聚成inputlist
-        //构造沙箱请求对象，把code、language、inputlist传入沙箱
+        JudgeConfig judgeConfig = JSONUtil.toBean(question.getJudgeConfig(), JudgeConfig.class);
         ExecuteCodeRequest executeCodeRequest = ExecuteCodeRequest.builder()
                 .code(code)
                 .language(language)
                 .inputList(inputList)
+                .judgeConfig(judgeConfig)
                 .build();
-        // 6.代码沙箱执行获得输出结果用例，沙箱执行为黑盒
         ExecuteCodeResponse executeCodeResponse = codeSandbox.executeCode(executeCodeRequest);
-        // 返回输出列表，（这里沙箱的任务已经完成，返回的是输出列表）
         List<String> outputList = executeCodeResponse.getOutputList();
 
-        // 7.根据沙箱执行结果，设置题目的判题状态和信息
-        // （然后进入判题系统，开始对沙箱执行完的结果进行判断）
-        // 构建判题上下文，封装所有的判题数据（也就是上下文）,
-        // 判题策略不需要知道数据来源，判题依据从context中获取
         JudgeContext judgeContext = new JudgeContext();
         judgeContext.setJudgeInfo(executeCodeResponse.getJudgeInfo());
+        judgeContext.setSandboxStatus(executeCodeResponse.getStatus());
+        judgeContext.setSandboxMessage(executeCodeResponse.getMessage());
         judgeContext.setInputList(inputList);
         judgeContext.setOutputList(outputList);
         judgeContext.setJudgeCaselist(judgeCaselist);
         judgeContext.setQuestion(question);
         judgeContext.setQuestionSubmit(questionSubmit);
 
-        // 8.调用判题策略（这里是核对关键，判断沙箱最终执行结果）
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
 
-        // 9.更新数据库
+        boolean accepted = JudgeInfoMessageEnum.ACCEPTED.getValue().equals(judgeInfo.getMessage());
         questionSubmitUpdate = new QuestionSubmit();
         questionSubmitUpdate.setId(questionSubmitId);
-        questionSubmitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());
+        questionSubmitUpdate.setStatus(
+                accepted ? QuestionSubmitStatusEnum.SUCCEED.getValue() : QuestionSubmitStatusEnum.FAILED.getValue());
         questionSubmitUpdate.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));
         update = questionSubmitService.updateById(questionSubmitUpdate);
         if (!update) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
         }
 
-        // 10.返回结果，把判题结果写回question_submit里面
-        questionSubmit.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());
+        questionSubmit.setStatus(questionSubmitUpdate.getStatus());
         questionSubmit.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));
         return questionSubmit;
     }
