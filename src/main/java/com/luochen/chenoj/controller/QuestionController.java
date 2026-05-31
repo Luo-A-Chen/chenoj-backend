@@ -11,15 +11,20 @@ import com.luochen.chenoj.constant.UserConstant;
 import com.luochen.chenoj.exception.BusinessException;
 import com.luochen.chenoj.exception.ThrowUtils;
 import com.luochen.chenoj.model.dto.question.*;
+import com.luochen.chenoj.model.dto.questioncomment.QuestionCommentAddRequest;
+import com.luochen.chenoj.model.dto.questioncomment.QuestionCommentQueryRequest;
 import com.luochen.chenoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.luochen.chenoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
+import com.luochen.chenoj.model.entity.QuestionComment;
 import com.luochen.chenoj.model.entity.Question;
 import com.luochen.chenoj.model.entity.QuestionSubmit;
 import com.luochen.chenoj.model.entity.User;
 import com.luochen.chenoj.model.vo.DailyPracticeVO;
+import com.luochen.chenoj.model.vo.QuestionCommentVO;
 import com.luochen.chenoj.model.vo.WeeklyBoardVO;
 import com.luochen.chenoj.model.vo.QuestionSubmitVO;
 import com.luochen.chenoj.model.vo.QuestionVO;
+import com.luochen.chenoj.service.QuestionCommentService;
 import com.luochen.chenoj.service.DailyPracticeService;
 import com.luochen.chenoj.service.QuestionService;
 import com.luochen.chenoj.service.QuestionSubmitService;
@@ -52,6 +57,9 @@ public class QuestionController {
 
     @Resource
     private QuestionSubmitService questionSubmitService;
+
+    @Resource
+    private QuestionCommentService questionCommentService;
 
     @Resource
     private DailyPracticeService dailyPracticeService;
@@ -125,7 +133,9 @@ public class QuestionController {
         long id = deleteRequest.getId();
         // 判断是否存在
         Question oldQuestion = questionService.getById(id);
-        ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
+        if (oldQuestion == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
         // 仅本人或管理员可删除
         if (!oldQuestion.getUserId().equals(user.getId()) && !userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -279,7 +289,9 @@ public class QuestionController {
         long id = questionEditRequest.getId();
         // 判断是否存在
         Question oldQuestion = questionService.getById(id);
-        ThrowUtils.throwIf(oldQuestion == null, ErrorCode.NOT_FOUND_ERROR);
+        if (oldQuestion == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
         // 仅本人或管理员可编辑
         if (!oldQuestion.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -304,6 +316,63 @@ public class QuestionController {
     @GetMapping("/stats/weekly/board")
     public BaseResponse<WeeklyBoardVO> getWeeklyBoard() {
         return ResultUtils.success(weeklyStatsService.getWeeklyBoard());
+    }
+
+    /**
+     * 发表评论（支持一级评论和二级回复）
+     */
+    @PostMapping("/comment/add")
+    @AuthCheck(mustRole = UserConstant.DEFAULT_ROLE)
+    public BaseResponse<Long> addQuestionComment(@RequestBody QuestionCommentAddRequest questionCommentAddRequest,
+                                                 HttpServletRequest request) {
+        if (questionCommentAddRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        long commentId = questionCommentService.addQuestionComment(questionCommentAddRequest, loginUser);
+        return ResultUtils.success(commentId);
+    }
+
+    /**
+     * 分页查询题目评论（默认查一级评论，并携带对应二级回复）
+     */
+    @PostMapping("/comment/list/page")
+    public BaseResponse<Page<QuestionCommentVO>> listQuestionCommentByPage(@RequestBody QuestionCommentQueryRequest questionCommentQueryRequest,
+                                                                           HttpServletRequest request) {
+        if (questionCommentQueryRequest == null
+                || questionCommentQueryRequest.getQuestionId() == null
+                || questionCommentQueryRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long current = questionCommentQueryRequest.getCurrent();
+        long size = questionCommentQueryRequest.getPageSize();
+        ThrowUtils.throwIf(size > 50, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUserPermitNull(request);
+        Page<QuestionComment> questionCommentPage = questionCommentService.page(new Page<>(current, size),
+                questionCommentService.getQueryWrapper(questionCommentQueryRequest));
+        return ResultUtils.success(questionCommentService.getQuestionCommentVOPage(questionCommentPage, loginUser));
+    }
+
+    /**
+     * 删除评论（仅本人或管理员）
+     */
+    @PostMapping("/comment/delete")
+    @AuthCheck(mustRole = UserConstant.DEFAULT_ROLE)
+    public BaseResponse<Boolean> deleteQuestionComment(@RequestBody DeleteRequest deleteRequest,
+                                                       HttpServletRequest request) {
+        if (deleteRequest == null || deleteRequest.getId() == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        QuestionComment oldQuestionComment = questionCommentService.getById(deleteRequest.getId());
+        if (oldQuestionComment == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        boolean canDelete = oldQuestionComment.getUserId().equals(loginUser.getId()) || userService.isAdmin(loginUser);
+        ThrowUtils.throwIf(!canDelete, ErrorCode.NO_AUTH_ERROR);
+        boolean removed = questionCommentService.removeById(deleteRequest.getId());
+        ThrowUtils.throwIf(!removed, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
     }
 
     /**

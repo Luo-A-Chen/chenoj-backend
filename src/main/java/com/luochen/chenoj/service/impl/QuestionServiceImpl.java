@@ -1,8 +1,11 @@
 package com.luochen.chenoj.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
+import com.luochen.chenoj.model.dto.question.JudgeCase;
 import com.luochen.chenoj.model.dto.question.JudgeConfig;
+import com.luochen.chenoj.model.enums.JudgeModeEnum;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -81,6 +84,40 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             if (config != null && config.getMemoryLimit() != null
                     && config.getMemoryLimit() > 64 * 1024) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "内存限制不能超过 64 MB");
+            }
+            if (config != null && JudgeModeEnum.isFunctionJava(config.getJudgeMode())) {
+                if (StringUtils.isBlank(config.getMethodName())) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题须填写方法名");
+                }
+                if (config.getParamTypes() == null || config.getParamTypes().isEmpty()) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题须填写参数类型");
+                }
+                if (StringUtils.isNotBlank(judgeCase)) {
+                    validateFunctionJudgeCaseJson(judgeCase);
+                }
+            }
+        }
+    }
+
+    private void validateFunctionJudgeCaseJson(String judgeCase) {
+        List<JudgeCase> cases = JSONUtil.toList(judgeCase, JudgeCase.class);
+        if (CollUtil.isEmpty(cases)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "判题用例不能为空");
+        }
+        for (JudgeCase item : cases) {
+            if (item == null || StringUtils.isBlank(item.getInput())) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题用例 input 须为 JSON 数组");
+            }
+            try {
+                JSONArray inputArr = JSONUtil.parseArray(item.getInput().trim());
+                if (inputArr == null) {
+                    throw new IllegalArgumentException("input");
+                }
+            } catch (Exception e) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题用例 input 须为合法 JSON 数组");
+            }
+            if (StringUtils.isBlank(item.getOutput())) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题用例 output 不能为空");
             }
         }
     }

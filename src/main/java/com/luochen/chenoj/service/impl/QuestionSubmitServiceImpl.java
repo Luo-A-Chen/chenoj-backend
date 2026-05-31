@@ -17,6 +17,7 @@ import com.luochen.chenoj.model.enums.QuestionSubmitLanguageEnum;
 import com.luochen.chenoj.model.enums.QuestionSubmitStatusEnum;
 import com.luochen.chenoj.model.vo.QuestionSubmitVO;
 import com.luochen.chenoj.model.vo.UserVO;
+import com.luochen.chenoj.model.vo.QuestionVO;
 import com.luochen.chenoj.service.QuestionService;
 import com.luochen.chenoj.service.QuestionSubmitService;
 import com.luochen.chenoj.mapper.QuestionSubmitMapper;
@@ -29,11 +30,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -150,6 +153,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             questionSubmitVO.setCode(null);
         }
         questionSubmitVO.setCanDelete(userService.isAdmin(loginUser));
+        fillQuestionTitle(questionSubmitVO, questionSubmit.getQuestionId());
         return questionSubmitVO;
     }
 
@@ -172,6 +176,14 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         Set<Long> userIdSet = questionSubmitList.stream().map(QuestionSubmit::getUserId).collect(Collectors.toSet());
         Map<Long, List<User>> userIdUserListMap = userService.listByIds(userIdSet).stream()
                 .collect(Collectors.groupingBy(User::getId));
+        Set<Long> questionIdSet = questionSubmitList.stream()
+                .map(QuestionSubmit::getQuestionId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, Question> questionMap = CollUtil.isEmpty(questionIdSet)
+                ? new HashMap<>()
+                : questionService.listByIds(questionIdSet).stream()
+                .collect(Collectors.toMap(Question::getId, Function.identity(), (a, b) -> a));
         // 填充信息
         List<QuestionSubmitVO> questionSubmitVOList = questionSubmitList.stream().map(questionSubmit -> {
             QuestionSubmitVO questionSubmitVO = QuestionSubmitVO.objToVo(questionSubmit);
@@ -185,10 +197,26 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
             }
             questionSubmitVO.setUserVO(userService.getUserVO(user));
             questionSubmitVO.setCanDelete(admin);
+            Question question = questionMap.get(questionSubmit.getQuestionId());
+            if (question != null) {
+                questionSubmitVO.setQuestionTitle(question.getTitle());
+                questionSubmitVO.setQuestionVO(QuestionVO.objToVo(question));
+            }
             return questionSubmitVO;
         }).collect(Collectors.toList());
         questionSubmitVOPage.setRecords(questionSubmitVOList);
         return questionSubmitVOPage;
+    }
+
+    private void fillQuestionTitle(QuestionSubmitVO questionSubmitVO, Long questionId) {
+        if (questionId == null) {
+            return;
+        }
+        Question question = questionService.getById(questionId);
+        if (question != null) {
+            questionSubmitVO.setQuestionTitle(question.getTitle());
+            questionSubmitVO.setQuestionVO(QuestionVO.objToVo(question));
+        }
     }
 
 }

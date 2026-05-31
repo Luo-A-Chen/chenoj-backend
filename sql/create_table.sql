@@ -37,7 +37,7 @@ create table if not exists question
     submitNum   int default 0 not null comment '题目提交数',
     acceptedNum int default 0 not null comment '题目通过数',
     judgeCase   text          null comment '判题用例（json 数组）',
-    judgeConfig text          null comment '判题配置（json 对象）',
+    judgeConfig text          null comment '判题配置（json：timeLimit/ms,memoryLimit/KB,judgeMode,methodName,paramTypes,returnType）',
     thumbNum   int      default 0                 not null comment '点赞数',
     favourNum  int      default 0                 not null comment '收藏数',
     userId     bigint                             not null comment '创建用户 id',
@@ -64,45 +64,19 @@ create table if not exists question_submit
     index idx_userId (userId)
 ) comment '题目提交';
 
-
-
--- ----------------------------------------------------------
--- 帖子点赞表（硬删除）
-create table if not exists post_thumb
+-- 4.题目评论表（支持一级评论 + 二级回复）
+create table if not exists question_comment
 (
     id         bigint auto_increment comment 'id' primary key,
-    postId     bigint                             not null comment '帖子 id',
-    userId     bigint                             not null comment '创建用户 id',
-    createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    index idx_postId (postId),
-    index idx_userId (userId)
-) comment '帖子点赞';
-
--- 帖子收藏表（硬删除）
-create table if not exists post_favour
-(
-    id         bigint auto_increment comment 'id' primary key,
-    postId     bigint                             not null comment '帖子 id',
-    userId     bigint                             not null comment '创建用户 id',
-    createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    index idx_postId (postId),
-    index idx_userId (userId)
-) comment '帖子收藏';
-
--- 帖子表
-create table if not exists post
-(
-    id         bigint auto_increment comment 'id' primary key,
-    title      varchar(512)                       null comment '标题',
-    content    text                               null comment '内容',
-    tags       varchar(1024)                      null comment '标签列表（json 数组）',
-    thumbNum   int      default 0                 not null comment '点赞数',
-    favourNum  int      default 0                 not null comment '收藏数',
-    userId     bigint                             not null comment '创建用户 id',
+    questionId bigint                             not null comment '题目 id',
+    userId     bigint                             not null comment '评论用户 id',
+    content    varchar(1000)                      not null comment '评论内容',
+    parentId   bigint   default 0                 not null comment '父评论 id，0 为一级评论，>0 为二级回复',
+    replyToUserId bigint                          null comment '被回复用户 id（仅二级回复使用）',
     createTime datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     isDelete   tinyint  default 0                 not null comment '是否删除',
-    index idx_userId (userId)
-) comment '帖子' collate = utf8mb4_unicode_ci;
+    index idx_questionId (questionId),
+    index idx_userId (userId),
+    index idx_parentId (parentId)
+) comment '题目评论';
