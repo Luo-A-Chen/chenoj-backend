@@ -22,6 +22,7 @@ import com.luochen.chenoj.model.entity.User;
 import com.luochen.chenoj.model.vo.DailyPracticeVO;
 import com.luochen.chenoj.model.vo.QuestionCommentVO;
 import com.luochen.chenoj.model.vo.WeeklyBoardVO;
+import com.luochen.chenoj.model.vo.stat.QuestionPlatformStatsVO;
 import com.luochen.chenoj.model.vo.QuestionSubmitVO;
 import com.luochen.chenoj.model.vo.QuestionVO;
 import com.luochen.chenoj.service.QuestionCommentService;
@@ -29,6 +30,7 @@ import com.luochen.chenoj.service.DailyPracticeService;
 import com.luochen.chenoj.service.QuestionService;
 import com.luochen.chenoj.service.QuestionSubmitService;
 import com.luochen.chenoj.service.UserService;
+import com.luochen.chenoj.service.QuestionStatsService;
 import com.luochen.chenoj.service.WeeklyStatsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -66,6 +68,9 @@ public class QuestionController {
 
     @Resource
     private WeeklyStatsService weeklyStatsService;
+
+    @Resource
+    private QuestionStatsService questionStatsService;
 
     /**
      * 创建一道题目
@@ -316,6 +321,14 @@ public class QuestionController {
     @GetMapping("/stats/weekly/board")
     public BaseResponse<WeeklyBoardVO> getWeeklyBoard() {
         return ResultUtils.success(weeklyStatsService.getWeeklyBoard());
+    }
+
+    /**
+     * 平台题目数据统计（题目量、通过率、标签分布、语言分布、近 7 日提交趋势、热门题目等）
+     */
+    @GetMapping("/stats/platform")
+    public BaseResponse<QuestionPlatformStatsVO> getPlatformStats() {
+        return ResultUtils.success(questionStatsService.getPlatformStats());
     }
 
     /**
