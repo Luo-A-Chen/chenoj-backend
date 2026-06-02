@@ -14,17 +14,33 @@ create table if not exists user
     id           bigint auto_increment comment 'id' primary key,
     userAccount  varchar(256)                           not null comment '账号',
     userPassword varchar(512)                           not null comment '密码',
-    unionId      varchar(256)                           null comment '微信开放平台id',
-    mpOpenId     varchar(256)                           null comment '公众号openId',
     userName     varchar(256)                           null comment '用户昵称',
     userAvatar   varchar(1024)                          null comment '用户头像',
     userProfile  varchar(512)                           null comment '用户简介',
+    careerDirection varchar(64)                         null comment '职业方向',
+    position     varchar(64)                            null comment '职位',
+    companyType  varchar(64)                            null comment '公司类型',
     userRole     varchar(256) default 'user'            not null comment '用户角色：user/admin/ban',
     createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
     updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    isDelete     tinyint      default 0                 not null comment '是否删除',
-    index idx_unionId (unionId)
+    isDelete     tinyint      default 0                 not null comment '是否删除'
 ) comment '用户' collate = utf8mb4_unicode_ci;
+
+-- 1.1 用户账号绑定表
+create table if not exists user_auth_bind
+(
+    id         bigint auto_increment comment 'id' primary key,
+    userId     bigint       not null comment '本站用户 id',
+    authType   varchar(32)  not null comment 'phone/wechat/weibo/github',
+    authId     varchar(256) not null comment '平台唯一标识或手机号',
+    authName   varchar(256) null comment '展示名',
+    createTime datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+    updateTime datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    isDelete   tinyint      default 0                 not null comment '是否删除',
+    unique key uk_auth (authType, authId),
+    unique key uk_user_type (userId, authType),
+    index idx_user (userId)
+) comment '用户账号绑定' collate = utf8mb4_unicode_ci;
 
 -- 2.题目表
 create table if not exists question
@@ -37,7 +53,7 @@ create table if not exists question
     submitNum   int default 0 not null comment '题目提交数',
     acceptedNum int default 0 not null comment '题目通过数',
     judgeCase   text          null comment '判题用例（json 数组）',
-    judgeConfig text          null comment '判题配置（json：timeLimit/ms,memoryLimit/KB,judgeMode,methodName,paramTypes,returnType）',
+    judgeConfig text          null comment '判题配置（json：timeLimit/ms,memoryLimit/KB,methodName,paramTypes,returnType）',
     thumbNum   int      default 0                 not null comment '点赞数',
     favourNum  int      default 0                 not null comment '收藏数',
     userId     bigint                             not null comment '创建用户 id',

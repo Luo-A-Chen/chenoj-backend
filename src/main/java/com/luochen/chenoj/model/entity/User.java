@@ -36,16 +36,6 @@ public class User implements Serializable {
     private String userPassword;
 
     /**
-     * 开放平台id
-     */
-    private String unionId;
-
-    /**
-     * 公众号openId
-     */
-    private String mpOpenId;
-
-    /**
      * 用户昵称
      */
     private String userName;
@@ -59,6 +49,21 @@ public class User implements Serializable {
      * 用户简介
      */
     private String userProfile;
+
+    /**
+     * 职业方向
+     */
+    private String careerDirection;
+
+    /**
+     * 职位
+     */
+    private String position;
+
+    /**
+     * 公司类型
+     */
+    private String companyType;
 
     /**
      * 用户角色：user/admin/ban

@@ -11,9 +11,11 @@ import com.luochen.chenoj.exception.BusinessException;
 import com.luochen.chenoj.mapper.UserMapper;
 import com.luochen.chenoj.model.dto.user.UserQueryRequest;
 import com.luochen.chenoj.model.entity.User;
+import com.luochen.chenoj.model.entity.UserAuthBind;
 import com.luochen.chenoj.model.enums.UserRoleEnum;
 import com.luochen.chenoj.model.vo.LoginUserVO;
 import com.luochen.chenoj.model.vo.UserVO;
+import com.luochen.chenoj.service.UserAuthBindService;
 import com.luochen.chenoj.service.UserService;
 import com.luochen.chenoj.utils.SqlUtils;
 import java.util.ArrayList;
@@ -22,8 +24,10 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import javax.annotation.Resource;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 
 /**
@@ -40,6 +44,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     public static final String SALT = "luochen";
+
+    @Resource
+    private UserAuthBindService userAuthBindService;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -193,6 +200,33 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean deleteMyAccount(User loginUser, String password, HttpServletRequest request) {
+        if (loginUser == null || loginUser.getId() == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        if (StringUtils.isBlank(password)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请输入密码确认注销");
+        }
+        String encryptedPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
+        if (!encryptedPassword.equals(loginUser.getUserPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        }
+
+        Long userId = loginUser.getId();
+        QueryWrapper<UserAuthBind> bindQuery = new QueryWrapper<>();
+        bindQuery.eq("userId", userId);
+        userAuthBindService.remove(bindQuery);
+
+        boolean removed = this.removeById(userId);
+        if (!removed) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "注销失败");
+        }
+        userLogout(request);
+        return true;
+    }
+
+    @Override
     public LoginUserVO getLoginUserVO(User user) {
         if (user == null) {
             return null;
@@ -226,8 +260,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求参数为空");
         }
         Long id = userQueryRequest.getId();
-        String unionId = userQueryRequest.getUnionId();
-        String mpOpenId = userQueryRequest.getMpOpenId();
         String userName = userQueryRequest.getUserName();
         String userProfile = userQueryRequest.getUserProfile();
         String userRole = userQueryRequest.getUserRole();
@@ -235,8 +267,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String sortOrder = userQueryRequest.getSortOrder();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(id != null, "id", id);
-        queryWrapper.eq(StringUtils.isNotBlank(unionId), "unionId", unionId);
-        queryWrapper.eq(StringUtils.isNotBlank(mpOpenId), "mpOpenId", mpOpenId);
         queryWrapper.eq(StringUtils.isNotBlank(userRole), "userRole", userRole);
         queryWrapper.like(StringUtils.isNotBlank(userProfile), "userProfile", userProfile);
         queryWrapper.like(StringUtils.isNotBlank(userName), "userName", userName);

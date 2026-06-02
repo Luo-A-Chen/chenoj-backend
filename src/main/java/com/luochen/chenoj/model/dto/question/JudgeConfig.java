@@ -4,27 +4,22 @@ import lombok.Data;
 
 
 /**
- * 题目信息
+ * 题目判题配置（Java 方法题：methodName + paramTypes + JSON 用例）
  */
 @Data
 public class JudgeConfig {
     /**
-     * 判题模式：stdio（只写 Solution.run 读写 stdin/stdout）| function_java（只写 Solution 方法，JSON 用例）
-     */
-    private String judgeMode;
-
-    /**
-     * function_java：待测方法名，如 mergeTwoLists
+     * 待测方法名，如 mergeTwoLists
      */
     private String methodName;
 
     /**
-     * function_java：参数类型列表，如 ListNode,int
+     * 参数类型列表，如 ListNode,int
      */
     private java.util.List<String> paramTypes;
 
     /**
-     * function_java：返回值类型，如 ListNode、int、int[]
+     * 返回值类型，如 ListNode、int、int[]
      */
     private String returnType;
 

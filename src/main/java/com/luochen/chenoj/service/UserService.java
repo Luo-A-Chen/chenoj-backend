@@ -78,6 +78,16 @@ public interface UserService extends IService<User> {
     boolean userLogout(HttpServletRequest request);
 
     /**
+     * 当前用户注销账号（逻辑删除）
+     *
+     * @param loginUser 当前登录用户
+     * @param password 登录密码
+     * @param request http 请求
+     * @return 是否成功
+     */
+    boolean deleteMyAccount(User loginUser, String password, HttpServletRequest request);
+
+    /**
      * 获取脱敏的已登录用户信息
      *
      * @return

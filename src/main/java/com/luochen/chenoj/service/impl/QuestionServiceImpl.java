@@ -5,7 +5,6 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONUtil;
 import com.luochen.chenoj.model.dto.question.JudgeCase;
 import com.luochen.chenoj.model.dto.question.JudgeConfig;
-import com.luochen.chenoj.model.enums.JudgeModeEnum;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -62,6 +61,9 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         // 创建时，参数不能为空
         if (add) {
             ThrowUtils.throwIf(StringUtils.isAnyBlank(title, content, tags), ErrorCode.PARAMS_ERROR);
+            if (StringUtils.isBlank(judgeCase)) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "请至少配置一组测试用例");
+            }
         }
         // 有参数则校验
         if (StringUtils.isNotBlank(title) && title.length() > 80) {
@@ -79,45 +81,76 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         if (StringUtils.isNotBlank(judgeConfig) && judgeConfig.length() > 8192) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "判题配置过长");
         }
+        if (StringUtils.isNotBlank(judgeCase)) {
+            validateJudgeCasesNotEmpty(judgeCase);
+        }
         if (StringUtils.isNotBlank(judgeConfig)) {
             JudgeConfig config = JSONUtil.toBean(judgeConfig, JudgeConfig.class);
             if (config != null && config.getMemoryLimit() != null
                     && config.getMemoryLimit() > 64 * 1024) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "内存限制不能超过 64 MB");
             }
-            if (config != null && JudgeModeEnum.isFunctionJava(config.getJudgeMode())) {
+            if (config != null) {
                 if (StringUtils.isBlank(config.getMethodName())) {
-                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题须填写方法名");
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "须填写方法名");
                 }
                 if (config.getParamTypes() == null || config.getParamTypes().isEmpty()) {
-                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题须填写参数类型");
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "须填写参数类型");
+                }
+                if (StringUtils.isBlank(config.getReturnType())) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "须填写返回类型");
                 }
                 if (StringUtils.isNotBlank(judgeCase)) {
-                    validateFunctionJudgeCaseJson(judgeCase);
+                    validateMethodJudgeCaseJson(judgeCase, config);
                 }
             }
         }
     }
 
-    private void validateFunctionJudgeCaseJson(String judgeCase) {
+    private void validateJudgeCasesNotEmpty(String judgeCase) {
+        List<JudgeCase> cases = JSONUtil.toList(judgeCase, JudgeCase.class);
+        if (CollUtil.isEmpty(cases)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请至少配置一组测试用例");
+        }
+        for (int i = 0; i < cases.size(); i++) {
+            JudgeCase item = cases.get(i);
+            if (item == null || StringUtils.isAnyBlank(item.getInput(), item.getOutput())) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,
+                        "第 " + (i + 1) + " 组测试用例的输入与输出均不能为空");
+            }
+        }
+    }
+
+    private void validateMethodJudgeCaseJson(String judgeCase, JudgeConfig config) {
         List<JudgeCase> cases = JSONUtil.toList(judgeCase, JudgeCase.class);
         if (CollUtil.isEmpty(cases)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "判题用例不能为空");
         }
-        for (JudgeCase item : cases) {
+        int expectedArgs = config.getParamTypes().size();
+        for (int i = 0; i < cases.size(); i++) {
+            JudgeCase item = cases.get(i);
             if (item == null || StringUtils.isBlank(item.getInput())) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题用例 input 须为 JSON 数组");
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,
+                        "第 " + (i + 1) + " 组用例 input 须为 JSON 数组");
             }
             try {
                 JSONArray inputArr = JSONUtil.parseArray(item.getInput().trim());
                 if (inputArr == null) {
                     throw new IllegalArgumentException("input");
                 }
+                if (inputArr.size() != expectedArgs) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR,
+                            "第 " + (i + 1) + " 组用例参数个数应为 " + expectedArgs);
+                }
+            } catch (BusinessException e) {
+                throw e;
             } catch (Exception e) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题用例 input 须为合法 JSON 数组");
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,
+                        "第 " + (i + 1) + " 组用例 input 须为合法 JSON 数组");
             }
             if (StringUtils.isBlank(item.getOutput())) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "函数题用例 output 不能为空");
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,
+                        "第 " + (i + 1) + " 组用例 output 不能为空");
             }
         }
     }

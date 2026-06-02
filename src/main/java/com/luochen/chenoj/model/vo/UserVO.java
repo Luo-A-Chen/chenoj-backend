@@ -34,6 +34,21 @@ public class UserVO implements Serializable {
     private String userProfile;
 
     /**
+     * 职业方向
+     */
+    private String careerDirection;
+
+    /**
+     * 职位
+     */
+    private String position;
+
+    /**
+     * 公司类型
+     */
+    private String companyType;
+
+    /**
      * 用户角色：user/admin/ban
      */
     private String userRole;

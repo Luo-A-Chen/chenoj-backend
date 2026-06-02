@@ -15,10 +15,15 @@ import com.luochen.chenoj.model.dto.user.UserQueryRequest;
 import com.luochen.chenoj.model.dto.user.UserResetPasswordRequest;
 import com.luochen.chenoj.model.dto.user.UserRegisterRequest;
 import com.luochen.chenoj.model.dto.user.UserUpdateMyRequest;
+import com.luochen.chenoj.model.dto.user.UserAuthBindRequest;
+import com.luochen.chenoj.model.dto.user.UserAuthUnbindRequest;
+import com.luochen.chenoj.model.dto.user.UserDeleteMyRequest;
 import com.luochen.chenoj.model.dto.user.UserUpdateRequest;
 import com.luochen.chenoj.model.entity.User;
 import com.luochen.chenoj.model.vo.LoginUserVO;
+import com.luochen.chenoj.model.vo.UserAuthBindVO;
 import com.luochen.chenoj.model.vo.UserVO;
+import com.luochen.chenoj.service.UserAuthBindService;
 import com.luochen.chenoj.service.UserService;
 
 import java.util.List;
@@ -50,6 +55,9 @@ public class UserController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private UserAuthBindService userAuthBindService;
 
     /**
      * 用户注册
@@ -291,6 +299,55 @@ public class UserController {
      * @param request http 请求
      * @return 是否成功
      */
+    /**
+     * 查询当前用户账号绑定列表
+     */
+    @GetMapping("/bind/list")
+    public BaseResponse<List<UserAuthBindVO>> listMyAuthBinds(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(userAuthBindService.listMyBinds(loginUser.getId()));
+    }
+
+    /**
+     * 保存账号绑定（仅记录数据）
+     */
+    @PostMapping("/bind/save")
+    public BaseResponse<Boolean> saveMyAuthBind(@RequestBody UserAuthBindRequest userAuthBindRequest,
+            HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        boolean result = userAuthBindService.saveMyBind(loginUser.getId(), userAuthBindRequest);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return ResultUtils.success(true);
+    }
+
+    /**
+     * 解除账号绑定
+     */
+    @PostMapping("/bind/remove")
+    public BaseResponse<Boolean> removeMyAuthBind(@RequestBody UserAuthUnbindRequest userAuthUnbindRequest,
+            HttpServletRequest request) {
+        if (userAuthUnbindRequest == null || StringUtils.isBlank(userAuthUnbindRequest.getAuthType())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = userAuthBindService.removeMyBind(loginUser.getId(), userAuthUnbindRequest.getAuthType());
+        return ResultUtils.success(result);
+    }
+
+    /**
+     * 注销当前登录账号（逻辑删除）
+     */
+    @PostMapping("/delete/my")
+    public BaseResponse<Boolean> deleteMyAccount(@RequestBody UserDeleteMyRequest userDeleteMyRequest,
+            HttpServletRequest request) {
+        if (userDeleteMyRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = userService.deleteMyAccount(loginUser, userDeleteMyRequest.getPassword(), request);
+        return ResultUtils.success(result);
+    }
+
     @PostMapping("/reset_password")
     public BaseResponse<Boolean> resetMyPassword(@RequestBody UserResetPasswordRequest userResetPasswordRequest,
             HttpServletRequest request) {

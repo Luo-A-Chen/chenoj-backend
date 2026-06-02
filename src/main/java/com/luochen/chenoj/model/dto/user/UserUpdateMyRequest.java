@@ -27,5 +27,20 @@ public class UserUpdateMyRequest implements Serializable {
      */
     private String userProfile;
 
+    /**
+     * 职业方向
+     */
+    private String careerDirection;
+
+    /**
+     * 职位
+     */
+    private String position;
+
+    /**
+     * 公司类型
+     */
+    private String companyType;
+
     private static final long serialVersionUID = 1L;
 }
