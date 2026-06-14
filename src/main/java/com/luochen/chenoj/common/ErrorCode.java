@@ -10,6 +10,9 @@ public enum ErrorCode {
 
     SUCCESS(0, "ok"),
     PARAMS_ERROR(40000, "请求参数错误"),
+    USER_ACCOUNT_EXIST(40002, "该账号已注册"),
+    USER_NAME_DUPLICATE(40003, "用户名重复"),
+    INVALID_USER_NAME(40004, "用户名不能包含特殊字符"),
     NOT_LOGIN_ERROR(40100, "未登录"),
     NO_AUTH_ERROR(40101, "无权限"),
     NOT_FOUND_ERROR(40400, "请求数据不存在"),

@@ -203,6 +203,13 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
     @Override
     public QuestionVO getQuestionVO(Question question, HttpServletRequest request){
         QuestionVO questionVO = QuestionVO.objToVo(question);
+        // 管理员编辑题目时需要回显测试用例
+        if (request != null && userService.isAdmin(request)) {
+            String judgeCaseStr = question.getJudgeCase();
+            if (StringUtils.isNotBlank(judgeCaseStr)) {
+                questionVO.setJudgeCase(JSONUtil.toList(judgeCaseStr, JudgeCase.class));
+            }
+        }
         // 1. 关联查询用户信息
         Long userId = question.getUserId();
         User user = null;

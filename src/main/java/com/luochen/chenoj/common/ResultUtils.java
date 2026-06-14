@@ -21,6 +21,13 @@ public class ResultUtils {
     }
 
     /**
+     * 成功（自定义提示信息）
+     */
+    public static <T> BaseResponse<T> success(T data, String message) {
+        return new BaseResponse<>(0, data, message);
+    }
+
+    /**
      * 失败
      *
      * @param errorCode

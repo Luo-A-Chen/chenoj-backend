@@ -36,6 +36,11 @@ public class QuestionSubmitQueryRequest extends PageRequest implements Serializa
      */
     private Long userId;
 
+    /**
+     * 仅查询当前登录用户的提交（由服务端用 session 中的用户 id 筛选，不依赖前端传 userId）
+     */
+    private Boolean onlyMine;
+
 
     private static final long serialVersionUID = 1L;
 }

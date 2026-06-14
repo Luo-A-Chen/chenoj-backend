@@ -21,11 +21,13 @@ public interface UserService extends IService<User> {
      * 用户注册
      *
      * @param userAccount   用户账户
+     * @param userName      用户昵称（可为空，默认与账号相同）
      * @param userPassword  用户密码
      * @param checkPassword 校验密码
      * @return 新用户 id
      */
-    long userRegister(String userAccount, String userPassword, String checkPassword);
+    long userRegister(String userAccount, String userName, String userPassword, String checkPassword,
+                      String captchaKey, String captchaCode);
 
     /**
      * 用户登录
@@ -35,7 +37,8 @@ public interface UserService extends IService<User> {
      * @param request
      * @return 脱敏后的用户信息
      */
-    LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request);
+    LoginUserVO userLogin(String userAccount, String userPassword,
+                          String captchaKey, String captchaCode, HttpServletRequest request);
 
     /**
      * 获取当前登录用户

@@ -16,7 +16,22 @@ public class UserRegisterRequest implements Serializable {
 
     private String userAccount;
 
+    /**
+     * 用户昵称；为空时默认与账号相同
+     */
+    private String userName;
+
     private String userPassword;
 
     private String checkPassword;
+
+    /**
+     * 图形验证码标识
+     */
+    private String captchaKey;
+
+    /**
+     * 用户输入的图形验证码
+     */
+    private String captchaCode;
 }

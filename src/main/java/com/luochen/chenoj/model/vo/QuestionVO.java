@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.luochen.chenoj.model.dto.question.JudgeCase;
 import com.luochen.chenoj.model.dto.question.JudgeConfig;
 import com.luochen.chenoj.model.entity.Question;
 import lombok.Data;
@@ -62,6 +63,11 @@ public class QuestionVO implements Serializable {
      * 判题配置（json 对象）
      */
     private JudgeConfig judgeConfig;
+
+    /**
+     * 判题用例（仅管理员编辑题目时返回，普通用户不可见）
+     */
+    private List<JudgeCase> judgeCase;
 
     /**
      * 点赞数

@@ -436,6 +436,15 @@ public class QuestionController {
         long current = questionSubmitQueryRequest.getCurrent();
         long size = questionSubmitQueryRequest.getPageSize();
         final User loginUser = userService.getLoginUser(request);
+        if (Boolean.TRUE.equals(questionSubmitQueryRequest.getOnlyMine())) {
+            questionSubmitQueryRequest.setUserId(loginUser.getId());
+        }
+        Long filterUserId = questionSubmitQueryRequest.getUserId();
+        if (filterUserId != null
+                && !filterUserId.equals(loginUser.getId())
+                && !userService.isAdmin(loginUser)) {
+            questionSubmitQueryRequest.setUserId(loginUser.getId());
+        }
         //1.查询出分页信息（按请求条件筛选，可看全站或某题、某用户的提交概要）
         // new Page<>(2,10)第二页，每页十条，mybatis-plus的分页对象
         // .page的需要两个参数，一个是分页对象，一个是查询条件对象

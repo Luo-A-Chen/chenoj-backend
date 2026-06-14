@@ -17,4 +17,14 @@ public class UserLoginRequest implements Serializable {
     private String userAccount;
 
     private String userPassword;
+
+    /**
+     * 图形验证码标识
+     */
+    private String captchaKey;
+
+    /**
+     * 用户输入的图形验证码
+     */
+    private String captchaCode;
 }

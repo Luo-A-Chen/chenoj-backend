@@ -25,6 +25,7 @@ import com.luochen.chenoj.model.vo.UserAuthBindVO;
 import com.luochen.chenoj.model.vo.UserVO;
 import com.luochen.chenoj.service.UserAuthBindService;
 import com.luochen.chenoj.service.UserService;
+import com.luochen.chenoj.utils.UserNameUtils;
 
 import java.util.List;
 import javax.annotation.Resource;
@@ -71,13 +72,20 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         String userAccount = userRegisterRequest.getUserAccount();
+        String userName = userRegisterRequest.getUserName();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
-        return ResultUtils.success(result);
+        long result = userService.userRegister(
+                userAccount,
+                userName,
+                userPassword,
+                checkPassword,
+                userRegisterRequest.getCaptchaKey(),
+                userRegisterRequest.getCaptchaCode());
+        return ResultUtils.success(result, "注册成功");
     }
 
     /**
@@ -97,7 +105,12 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        LoginUserVO loginUserVO = userService.userLogin(userAccount, userPassword, request);
+        LoginUserVO loginUserVO = userService.userLogin(
+                userAccount,
+                userPassword,
+                userLoginRequest.getCaptchaKey(),
+                userLoginRequest.getCaptchaCode(),
+                request);
         return ResultUtils.success(loginUserVO);
     }
     /**
@@ -284,6 +297,11 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (StringUtils.isNotBlank(userUpdateMyRequest.getUserName())) {
+            String userName = userUpdateMyRequest.getUserName().trim();
+            UserNameUtils.validateUserName(userName);
+            userUpdateMyRequest.setUserName(userName);
+        }
         User user = new User();
         BeanUtils.copyProperties(userUpdateMyRequest, user);
         user.setId(loginUser.getId());

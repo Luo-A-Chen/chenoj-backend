@@ -15,9 +15,11 @@ import com.luochen.chenoj.model.entity.UserAuthBind;
 import com.luochen.chenoj.model.enums.UserRoleEnum;
 import com.luochen.chenoj.model.vo.LoginUserVO;
 import com.luochen.chenoj.model.vo.UserVO;
+import com.luochen.chenoj.service.CaptchaService;
 import com.luochen.chenoj.service.UserAuthBindService;
 import com.luochen.chenoj.service.UserService;
 import com.luochen.chenoj.utils.SqlUtils;
+import com.luochen.chenoj.utils.UserNameUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -48,8 +50,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private UserAuthBindService userAuthBindService;
 
+    @Resource
+    private CaptchaService captchaService;
+
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String userAccount, String userName, String userPassword, String checkPassword,
+                             String captchaKey, String captchaCode) {
+        captchaService.validateCaptcha(captchaKey, captchaCode);
+        userAccount = StringUtils.trim(userAccount);
+        userName = StringUtils.trimToEmpty(userName);
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
@@ -60,24 +69,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
         }
-        // 密码和校验密码相同
         if (!userPassword.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
+        if (StringUtils.isBlank(userName)) {
+            userName = userAccount;
+        }
+        UserNameUtils.validateUserName(userName);
+        final String resolvedUserName = userName;
         synchronized (userAccount.intern()) {
-            // 账户不能重复
-            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("userAccount", userAccount);
-            long count = this.baseMapper.selectCount(queryWrapper);
-            if (count > 0) {
-                throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
+            QueryWrapper<User> accountQuery = new QueryWrapper<>();
+            accountQuery.eq("userAccount", userAccount);
+            if (this.baseMapper.selectCount(accountQuery) > 0) {
+                throw new BusinessException(ErrorCode.USER_ACCOUNT_EXIST);
             }
-            // 2. 加密
+            QueryWrapper<User> nameQuery = new QueryWrapper<>();
+            nameQuery.eq("userName", resolvedUserName);
+            if (this.baseMapper.selectCount(nameQuery) > 0) {
+                throw new BusinessException(ErrorCode.USER_NAME_DUPLICATE);
+            }
             String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
-            // 3. 插入数据
             User user = new User();
             user.setUserAccount(userAccount);
+            user.setUserName(resolvedUserName);
             user.setUserPassword(encryptPassword);
+            user.setUserRole(UserRoleEnum.USER.getValue());
             boolean saveResult = this.save(user);
             if (!saveResult) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "注册失败，数据库错误");
@@ -87,7 +103,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public LoginUserVO userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public LoginUserVO userLogin(String userAccount, String userPassword,
+                                 String captchaKey, String captchaCode, HttpServletRequest request) {
+        captchaService.validateCaptcha(captchaKey, captchaCode);
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
