@@ -1,6 +1,7 @@
 package com.luochen.chenoj.judge;
 
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.luochen.chenoj.common.ErrorCode;
 import com.luochen.chenoj.exception.BusinessException;
 import com.luochen.chenoj.judge.codesandbox.CodeSandbox;
@@ -114,6 +115,20 @@ public class JudgeServiceImpl implements JudgeService {
         update = questionSubmitService.updateById(questionSubmitUpdate);
         if (!update) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目状态更新错误");
+        }
+
+        // 更新题目全站统计：每次判题结束 submitNum +1，AC 时 acceptedNum +1
+        UpdateWrapper<Question> questionStatsUpdate = new UpdateWrapper<>();
+        questionStatsUpdate.eq("id", questionId);
+        if (accepted) {
+            questionStatsUpdate.setSql(
+                    "submitNum = IFNULL(submitNum, 0) + 1, acceptedNum = IFNULL(acceptedNum, 0) + 1");
+        } else {
+            questionStatsUpdate.setSql("submitNum = IFNULL(submitNum, 0) + 1");
+        }
+        boolean statsUpdated = questionService.update(questionStatsUpdate);
+        if (!statsUpdated) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "题目提交统计更新失败");
         }
 
         questionSubmit.setStatus(questionSubmitUpdate.getStatus());

@@ -123,12 +123,14 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
 
         String language = questionSubmitQueryRequest.getLanguage();
         Integer status = questionSubmitQueryRequest.getStatus();
+        Long id = questionSubmitQueryRequest.getId();
         Long questionId = questionSubmitQueryRequest.getQuestionId();
         Long userId = questionSubmitQueryRequest.getUserId();
         String sortField = questionSubmitQueryRequest.getSortField();
         String sortOrder = questionSubmitQueryRequest.getSortOrder();
         //2.根据查询条件构建查询包装类
         queryWrapper.eq(ObjectUtils.isNotEmpty(userId), "userId", userId);
+        queryWrapper.eq(ObjectUtils.isNotEmpty(id), "id", id);
         queryWrapper.eq(ObjectUtils.isNotEmpty(language), "language", language);
         queryWrapper.eq(ObjectUtils.isNotEmpty(questionId), "questionId", questionId);
         queryWrapper.eq(QuestionSubmitStatusEnum.getEnumByValue(status) != null, "status", status);
